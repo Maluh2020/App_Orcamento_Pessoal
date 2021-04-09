@@ -60,7 +60,9 @@ class Bd {
 			 if(despesa === null){
 			 	continue
 			 }
+
 			 //a cada iteração é incluido no array
+			 despesa.id = i
 			 despesas.push(despesa)
 		}
 
@@ -107,12 +109,16 @@ class Bd {
 
 		//valor
 		if (despesa.valor != '') {
-			console.log('Filtro de ano')
+			console.log('Filtro de valor')
 			 despesasFiltradas = despesasFiltradas.filter(d => d.valor == despesa.valor)
 		}
 
 		return despesasFiltradas
 
+	}
+
+	remover(id){
+		localStorage.removeItem(id)
 	}
 }
 
@@ -174,14 +180,16 @@ function cadastrarDespesa(){
  /*Local Storage é um armazenamento persistente, qdo fechamos o browser
  as informações ficam la ate que as deletemos */
 
-function carregarListaDespesas(){
+function carregarListaDespesas(despesas = Array(), filtro = false){
 
-	let despesas = Array()
-	despesas = bd.recuperarTodosRegistros()
-
+	//let despesas = Array()
+	if (despesas.length == 0 && filtro == false) {
+		despesas = bd.recuperarTodosRegistros()
+	}
+	
 	//selecionando o elemento tbody da tabela
 	let listaDespesas = document.getElementById('listaDespesas')
-
+	listaDespesas.innerHTML = ''
 	//percorer o array despesa listando cada despesa de forma dinamoca
 	despesas.forEach(function(d){
 		
@@ -208,6 +216,24 @@ function carregarListaDespesas(){
     	linha.insertCell(1).innerHTML = d.tipo
 		linha.insertCell(2).innerHTML = d.descricao
 		linha.insertCell(3).innerHTML = d.valor
+
+		//criar botão de exclusão
+		let btn = document.createElement("button")
+		btn.className = 'btn btn-danger'
+		btn.innerHTML = '<i class="fas fa-times"></i>'
+		btn.id = `id_despesa_${d.id}`
+		btn.onclick = function(){
+		//remover despesa 
+			let id = this.id.replace('id_despesa_', '')
+			//alert(id)
+
+			bd.remover(id)
+
+			window.location.reload()
+		}
+		linha.insertCell(4).append(btn)
+
+		console.log(d)
 	})
 
 }
@@ -224,35 +250,6 @@ function pesquisarDespesa(){
 
 	let despesas = bd.pesquisar(despesa)
 
-	//selecionando o elemento tbody da tabela
-	let listaDespesas = document.getElementById('listaDespesas')
-	listaDespesas.innerHTML = ''
-
-	//percorrer p array despesas, listando cada despesa de forma dinãmica 
-	despesas.forEach(function(d){
-		
-		//criando linhas tr
-		let linha = listaDespesas.insertRow()
-
-		//criando colunas td
-		linha.insertCell(0).innerHTML = `${d.dia}/${d.mes}/${d.ano}`
-
-    	//ajustar o tipo
-    	switch(d.tipo){
-    		case '1': d.tipo = 'Alimentação'
-    			break
-    		case '2': d.tipo = 'Educação'
-    			break
-    		case '3': d.tipo = 'Lazer'
-    			break
-    		case '4': d.tipo = 'Saúde'
-    			break
-    		case '5': d.tipo = 'Transporte'
-    			break
-    	}
-
-    	linha.insertCell(1).innerHTML = d.tipo
-		linha.insertCell(2).innerHTML = d.descricao
-		linha.insertCell(3).innerHTML = d.valor
-	})
+	//como o codigo se repete aqui basta chamar a função
+	carregarListaDespesas(despesas, true)
 }
